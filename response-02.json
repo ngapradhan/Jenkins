@@ -1,0 +1,60 @@
+{
+    "_class": "hudson.model.Hudson",
+    "jobs": [
+        {
+            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+            "name": "ea-software",
+            "url": "http://ip172-18-0-111-csr4fjq91nsg00cjuog0-8080.direct.labs.play-with-docker.com/job/ea-software/",
+            "jobs": [
+                {
+                    "_class": "com.cloudbees.hudson.plugins.folder.Folder"
+                }
+            ]
+        }
+    ]
+}
+Raw response from Jenkins API: {
+    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+    "jobs": [
+        {
+            "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+            "name": "jte-tests",
+            "url": "http://ip172-18-0-111-csr4fjq91nsg00cjuog0-8080.direct.labs.play-with-docker.com/job/ea-software/job/jte-tests/",
+            "jobs": [
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"
+                },
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"
+                }
+            ]
+        }
+    ]
+}
+Raw response from Jenkins API: {
+    "_class": "com.cloudbees.hudson.plugins.folder.Folder",
+    "jobs": [
+        {
+            "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+            "name": "multi-branch",
+            "url": "http://ip172-18-0-111-csr4fjq91nsg00cjuog0-8080.direct.labs.play-with-docker.com/job/ea-software/job/jte-tests/job/multi-branch/",
+            "jobs": [
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob"
+                },
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob"
+                },
+                {
+                    "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob"
+                }
+            ]
+        },
+        {
+            "_class": "org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject",
+            "name": "test-job-01",
+            "url": "http://ip172-18-0-111-csr4fjq91nsg00cjuog0-8080.direct.labs.play-with-docker.com/job/ea-software/job/jte-tests/job/test-job-01/",
+            "jobs": []
+        }
+    ]
+}

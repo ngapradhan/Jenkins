@@ -7,16 +7,6 @@ post_docker_run() {
   JENKINS_URL=${jenkins_url}
   API_ENDPOINT="/api/json?tree=jobs%5Bname,_class,url,jobs%5D"
 
-  # Get Jenkins credentials
-  # jenkins_service_account=$(aws secretsmanager get-secret-value \
-  # --region ${region} \
-  # --secret-id ${jenkins_secret_id} \
-  # | jq --raw-output .SecretString)
-
-  # # extract creds
-  # USER=$(jq -r .username <<< $jenkins_service_account)
-  # API_TOKEN=$(jq -r .password <<< $jenkins_service_account)
-
   # Wait for Jenkins to be up
   wait_for_jenkins || return 1
 
@@ -49,22 +39,27 @@ scan_reapply_multibranch_job() {
 
   # Fetch all items in the current directory
   local items=$(curl -sS --user "$user:$api_token" "$parent_url$api_endpoint")
-  # Check if the curl command was successful
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to retrieve the list of jobs from Jenkins"
+
+  # Check if curl succeeded and if items is not empty
+  if [ $? -ne 0 ] || [ -z "$items" ]; then
+    echo "Error: Failed to retrieve the list of jobs from Jenkins, or response is empty"
     return 1
   fi
 
+  # Log the raw response for debugging
+  echo "Raw response from Jenkins API:"
+  echo "$items"
+
   # Parse each item and look for multibranch pipelines and folders
-  local job_urls=$(echo "$items" | jq -r '.jobs[] | select(._class=="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject") | .url')
+  local job_urls=$(echo "$items" | jq -r '.jobs[] | select(._class=="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject") | .url' 2>/dev/null)
 
   # Recurse into folders
-  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url')
+  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url' 2>/dev/null)
   for folder in $folders; do
     scan_reapply_multibranch_job "$(echo "$folder" | tr -d '\r')" "$api_endpoint" "$user" "$api_token"
     echo $folder
   done
-  
+
   update_multibranch_job_configs "$user" "$api_token" "$job_urls"
 }
 
@@ -78,7 +73,7 @@ update_multibranch_job_configs() {
   # Add multibranch pipeline job URLs to the array and reapply configuration
   echo 'Updating configuration for multibranch jobs:'
   for url in $job_urls; do
-    # MULTIBRANCH_JOB_URLS+=("$url")
+    echo "Print URL: $url \n"
 
     # Clean up any previous job config.xml, ignore fail
     rm -f config.xml
@@ -90,22 +85,6 @@ update_multibranch_job_configs() {
     curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml"
   done
 
-  
-  # for url in "$MULTIBRANCH_JOB_URLS[@]"; do
-  #   url="$(echo "$url" | tr -d '\r' | sed 's:/$::')" # Remove carriage return characters and trailing slash
-  #   echo "Updating configuration to: $url"
-  # Clean up any previous job config.xml, ignore fail
-  #   rm -f config.xml
-  
-  #   # Get current job config.xml
-  #   curl -s -u "$user:$api_token" "$url/config.xml" -O
-  
-  #   # Update the same config.xml to the job
-  #   curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml"
-    
-  # done
-  
-  # Clean up any previous job config.xml, ignore fail
   rm -f config.xml
 }
 
