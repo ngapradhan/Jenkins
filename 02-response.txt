@@ -1,0 +1,53 @@
+Waiting for Jenkins to be up...
+Jenkins is up!
+Raw response from Jenkins API:
+{"_class":"hudson.model.Hudson","jobs":[{"_class":"com.cloudbees.hudson.plugins.folder.Folder","name":"ea-software","url":"http://localhost:8080/job/ea-software/","jobs":[{"_class":"com.cloudbees.hudson.plugins.folder.Folder"},{"_class":"com.cloudbees.hudson.plugins.folder.Folder"}]}]}
+Raw response from Jenkins API:
+{"_class":"com.cloudbees.hudson.plugins.folder.Folder","jobs":[{"_class":"com.cloudbees.hudson.plugins.folder.Folder","name":"jte-tests","url":"http://localhost:8080/job/ea-software/job/jte-tests/","jobs":[{"_class":"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"}]},{"_class":"com.cloudbees.hudson.plugins.folder.Folder","name":"project-01","url":"http://localhost:8080/job/ea-software/job/project-01/","jobs":[{"_class":"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject"}]}]}
+Raw response from Jenkins API:
+{"_class":"com.cloudbees.hudson.plugins.folder.Folder","jobs":[{"_class":"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject","name":"test-01","url":"http://localhost:8080/job/ea-software/job/jte-tests/job/test-01/","jobs":[{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"}]}]}
+Updating configuration for multibranch jobs:
+Print URL: http://localhost:8080/job/ea-software/job/jte-tests/job/test-01/ \n
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<title>Error 403 No valid crumb was included in the request</title>
+</head>
+<body><h2>HTTP ERROR 403 No valid crumb was included in the request</h2>
+<table>
+<tr><th>URI:</th><td>/job/ea-software/job/jte-tests/job/test-01//config.xml</td></tr>
+<tr><th>STATUS:</th><td>403</td></tr>
+<tr><th>MESSAGE:</th><td>No valid crumb was included in the request</td></tr>
+<tr><th>SERVLET:</th><td>Stapler</td></tr>
+</table>
+<hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.13</a><hr/>
+
+</body>
+</html>
+Configuration has been applied for http://localhost:8080/job/ea-software/job/jte-tests/job/test-01/\n
+http://localhost:8080/job/ea-software/job/jte-tests/
+Raw response from Jenkins API:
+{"_class":"com.cloudbees.hudson.plugins.folder.Folder","jobs":[{"_class":"org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject","name":"mutibranch-test-job-02","url":"http://localhost:8080/job/ea-software/job/project-01/job/mutibranch-test-job-02/","jobs":[{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"},{"_class":"org.jenkinsci.plugins.workflow.job.WorkflowJob"}]}]}
+Updating configuration for multibranch jobs:
+Print URL: http://localhost:8080/job/ea-software/job/project-01/job/mutibranch-test-job-02/ \n
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+<title>Error 403 No valid crumb was included in the request</title>
+</head>
+<body><h2>HTTP ERROR 403 No valid crumb was included in the request</h2>
+<table>
+<tr><th>URI:</th><td>/job/ea-software/job/project-01/job/mutibranch-test-job-02//config.xml</td></tr>
+<tr><th>STATUS:</th><td>403</td></tr>
+<tr><th>MESSAGE:</th><td>No valid crumb was included in the request</td></tr>
+<tr><th>SERVLET:</th><td>Stapler</td></tr>
+</table>
+<hr/><a href="https://jetty.org/">Powered by Jetty:// 12.0.13</a><hr/>
+
+</body>
+</html>
+Configuration has been applied for http://localhost:8080/job/ea-software/job/project-01/job/mutibranch-test-job-02/\n
+http://localhost:8080/job/ea-software/job/project-01/
+Updating configuration for multibranch jobs:
+http://localhost:8080/job/ea-software/job/project-01/
+Updating configuration for multibranch jobs:

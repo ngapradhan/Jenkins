@@ -1,5 +1,5 @@
 #!/bin/bash
-jenkins_url="172.19.0.2:8080"
+jenkins_url="http://localhost:8080"
 USER="admin"
 API_TOKEN="Admin123"
 

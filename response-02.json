@@ -13,7 +13,8 @@
         }
     ]
 }
-Raw response from Jenkins API: {
+// Raw response from Jenkins API 
+{
     "_class": "com.cloudbees.hudson.plugins.folder.Folder",
     "jobs": [
         {
@@ -58,3 +59,11 @@ Raw response from Jenkins API: {
         }
     ]
 }
+
+// Raw response from Jenkins API: {
+    $ curl -u "admin:Admin123" -s "http://localhost:8080/crumbIssuer/api/json"
+    {
+        "_class": "hudson.security.csrf.DefaultCrumbIssuer",
+        "crumb": "5e2751741ecbc29e14c41ae91e5300846180b4df7dde99778847ccb81b9b6342",
+        "crumbRequestField": "Jenkins-Crumb"
+    }

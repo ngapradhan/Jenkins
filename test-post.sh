@@ -1,5 +1,5 @@
 #!/bin/bash
-jenkins_url="http://ip172-18-0-111-csr4fjq91nsg00cjuog0-8080.direct.labs.play-with-docker.com"
+jenkins_url="http://localhost:8080"
 USER="admin"
 API_TOKEN="Admin123"
 
@@ -8,7 +8,7 @@ post_docker_run() {
   API_ENDPOINT="/api/json?tree=jobs%5Bname,_class,url,jobs%5D"
 
   # Wait for Jenkins to be up
-  wait_for_jenkins || return 1
+  wait_for_jenkins "$JENKINS_URL" || return 1
 
   # Collect multibranch job urls recursively
   scan_reapply_multibranch_job "$JENKINS_URL" "$API_ENDPOINT" "$USER" "$API_TOKEN"
@@ -16,10 +16,11 @@ post_docker_run() {
 
 # This method verify if Jenkins is available or not
 wait_for_jenkins() {
+    parent_url="$1"
   echo "Waiting for Jenkins to be up..."
   for i in {1..20}; do
     # if [ "$(curl -o /dev/null -s -w '%%{http_code}' "${jenkins_url}/login")" -eq 200 ]; then
-    if [ "$(curl -o /dev/null -s -w '%{http_code}' "${jenkins_url}/login")" -eq 200 ]; then
+    if [ "$(curl -o /dev/null -s -w '%{http_code}' "$parent_url/login")" -eq 200 ]; then
       echo "Jenkins is up!"
       return 0
     fi
@@ -68,7 +69,6 @@ update_multibranch_job_configs() {
   local user="$1"
   local api_token="$2"
   local job_urls="$3"
-  local MULTIBRANCH_JOB_URLS=()
 
   # Add multibranch pipeline job URLs to the array and reapply configuration
   echo 'Updating configuration for multibranch jobs:'
@@ -76,16 +76,26 @@ update_multibranch_job_configs() {
     echo "Print URL: $url \n"
 
     # Clean up any previous job config.xml, ignore fail
-    rm -f config.xml
+    # rm -f config.xml
   
     # Get current job config.xml
     curl -s -u "$user:$api_token" "$url/config.xml" -O
+
+    # Get the Crumb
+    CRUMB=$(curl -u "$user:$api_token" -s "$url/crumbIssuer/api/json" | jq -r '.crumb')
   
     # Update the same config.xml to the job
     curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml"
+    # curl -u "$user:$api_token" -X POST \
+    #  -H "Content-Type: application/xml" \
+    #  -H 'Jenkins-Crumb:' $CRUMB \
+    #  --data-binary @config.xml \
+    #  "$url/config.xml"
+
+    echo "Configuration has been applied for $url\n"
   done
 
-  rm -f config.xml
+#   rm -f config.xml
 }
 
 post_docker_run
