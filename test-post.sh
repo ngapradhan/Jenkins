@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -u
+set -e
+
 jenkins_url="http://localhost:8080"
 USER="admin"
 API_TOKEN="11945107455fda969710f76d60b00f5c11"
@@ -47,34 +50,28 @@ scan_reapply_multibranch_job() {
     return 1
   fi
 
-  echo "Raw response from Jenkins API:"
-  echo "$items"
-
   # Parse each item and look for multibranch pipelines and folders
-  local job_urls=$(echo "$items" | jq -r '.jobs[] | select(._class=="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject") | .url' 2>/dev/null)
-  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url' 2>/dev/null)
-
+  local job_urls=$(echo "$items" | jq -r '.jobs[] | select(._class=="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject") | .url')
+  
   # Recurse into folders
+  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url')
   for folder in $folders; do
     scan_reapply_multibranch_job "$(echo "$folder" | tr -d '\r')" "$api_endpoint" "$user" "$api_token"
     echo "$folder"
   done
 
-  update_multibranch_job_configs "$parent_url" "$user" "$api_token" "$job_urls"
+  update_multibranch_job_configs "$user" "$api_token" "$job_urls"
 }
 
 # This method updates configuration for each multibranch job
 update_multibranch_job_configs() {
-  local parent_url="$1"
-  local user="$2"
-  local api_token="$3"
-  local job_urls="$4"
+  local user="$1"
+  local api_token="$2"
+  local job_urls="$3"
 
   echo "Updating configuration for multibranch jobs:"
   for url in $job_urls; do
-    
-    # url=$(echo $url | tr -d '\r')
-    url=$(echo "$url" | sed 's:/*$::')
+    url="$(echo "$url" | tr -d '\r' | sed 's:/$::')" # Remove carriage return characters and trailing slash
     echo "Processing URL: $url"
 
     rm -f config.xml
@@ -86,23 +83,9 @@ update_multibranch_job_configs() {
     fi
     echo "Config file retrieved successfully for $url"
 
-    # crumb=$(curl -u "$user:$api_token" -s 'http://localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
-    # echo "Crumb: $crumb"
-
-    
     response=$(curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml")
-        
-    # curl -k -s -u "$user:$api_token" -X POST \
-    # -H "Content-Type: application/xml" \
-    # # -H "$crumb" \
-    # --data-binary "@config.xml" \
-    # "$url/config.xml")
-
-    echo "Error: Response $response"
-
     if [ $? -ne 0 ]; then
       echo "Error: Failed to update configuration for $url"
-      echo "Error: Response $response"
       continue
     fi
 
