@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# set -u
-# set -e
-
 jenkins_url="http://localhost:8080"
 USER="admin"
 API_TOKEN="11945107455fda969710f76d60b00f5c11"
