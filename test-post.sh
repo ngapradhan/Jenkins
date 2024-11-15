@@ -1,7 +1,8 @@
 #!/bin/bash
+
 jenkins_url="http://localhost:8080"
 USER="admin"
-API_TOKEN="Admin123"
+API_TOKEN="11945107455fda969710f76d60b00f5c11"
 
 post_docker_run() {
   JENKINS_URL=${jenkins_url}
@@ -10,16 +11,15 @@ post_docker_run() {
   # Wait for Jenkins to be up
   wait_for_jenkins "$JENKINS_URL" || return 1
 
-  # Collect multibranch job urls recursively
+  # Collect multibranch job URLs recursively
   scan_reapply_multibranch_job "$JENKINS_URL" "$API_ENDPOINT" "$USER" "$API_TOKEN"
 }
 
-# This method verify if Jenkins is available or not
+# This method verifies if Jenkins is available
 wait_for_jenkins() {
-    parent_url="$1"
+  parent_url="$1"
   echo "Waiting for Jenkins to be up..."
   for i in {1..20}; do
-    # if [ "$(curl -o /dev/null -s -w '%%{http_code}' "${jenkins_url}/login")" -eq 200 ]; then
     if [ "$(curl -o /dev/null -s -w '%{http_code}' "$parent_url/login")" -eq 200 ]; then
       echo "Jenkins is up!"
       return 0
@@ -31,7 +31,7 @@ wait_for_jenkins() {
   return 1
 }
 
-# This method recursively collects multibranch job URLs and triggers the update process.
+# This method recursively collects multibranch job URLs and triggers the update process
 scan_reapply_multibranch_job() {
   local parent_url="$1"
   local api_endpoint="$2"
@@ -47,55 +47,68 @@ scan_reapply_multibranch_job() {
     return 1
   fi
 
-  # Log the raw response for debugging
   echo "Raw response from Jenkins API:"
   echo "$items"
 
   # Parse each item and look for multibranch pipelines and folders
   local job_urls=$(echo "$items" | jq -r '.jobs[] | select(._class=="org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject") | .url' 2>/dev/null)
+  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url' 2>/dev/null)
 
   # Recurse into folders
-  local folders=$(echo "$items" | jq -r '.jobs[] | select(._class=="com.cloudbees.hudson.plugins.folder.Folder") | .url' 2>/dev/null)
   for folder in $folders; do
     scan_reapply_multibranch_job "$(echo "$folder" | tr -d '\r')" "$api_endpoint" "$user" "$api_token"
-    echo $folder
+    echo "$folder"
   done
 
-  update_multibranch_job_configs "$user" "$api_token" "$job_urls"
+  update_multibranch_job_configs "$parent_url" "$user" "$api_token" "$job_urls"
 }
 
-# This method update configuration for every multibranch job
+# This method updates configuration for each multibranch job
 update_multibranch_job_configs() {
-  local user="$1"
-  local api_token="$2"
-  local job_urls="$3"
+  local parent_url="$1"
+  local user="$2"
+  local api_token="$3"
+  local job_urls="$4"
 
-  # Add multibranch pipeline job URLs to the array and reapply configuration
-  echo 'Updating configuration for multibranch jobs:'
+  echo "Updating configuration for multibranch jobs:"
   for url in $job_urls; do
-    echo "Print URL: $url \n"
+    
+    # url=$(echo $url | tr -d '\r')
+    url=$(echo "$url" | sed 's:/*$::')
+    echo "Processing URL: $url"
 
-    # Clean up any previous job config.xml, ignore fail
-    # rm -f config.xml
-  
-    # Get current job config.xml
-    curl -s -u "$user:$api_token" "$url/config.xml" -O
+    rm -f config.xml
+    # Fetch the current job config.xml
+    config_response=$(curl -s -u "$user:$api_token" -o config.xml "$url/config.xml")
+    if [ $? -ne 0 ] || [ ! -s config.xml ]; then
+      echo "Error: Failed to fetch config.xml for $url"
+      continue
+    fi
+    echo "Config file retrieved successfully for $url"
 
-    # Get the Crumb
-    CRUMB=$(curl -u "$user:$api_token" -s "$url/crumbIssuer/api/json" | jq -r '.crumb')
-  
-    # Update the same config.xml to the job
-    curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml"
-    # curl -u "$user:$api_token" -X POST \
-    #  -H "Content-Type: application/xml" \
-    #  -H 'Jenkins-Crumb:' $CRUMB \
-    #  --data-binary @config.xml \
-    #  "$url/config.xml"
+    # crumb=$(curl -u "$user:$api_token" -s 'http://localhost:8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,":",//crumb)')
+    # echo "Crumb: $crumb"
 
-    echo "Configuration has been applied for $url\n"
+    
+    response=$(curl -s -u "$user:$api_token" "$url/config.xml" --data-binary "@config.xml" -H "Content-Type: application/xml")
+        
+    # curl -k -s -u "$user:$api_token" -X POST \
+    # -H "Content-Type: application/xml" \
+    # # -H "$crumb" \
+    # --data-binary "@config.xml" \
+    # "$url/config.xml")
+
+    echo "Error: Response $response"
+
+    if [ $? -ne 0 ]; then
+      echo "Error: Failed to update configuration for $url"
+      echo "Error: Response $response"
+      continue
+    fi
+
+    echo "Configuration applied successfully for $url"
+    rm -f config.xml
   done
-
-#   rm -f config.xml
 }
 
 post_docker_run
